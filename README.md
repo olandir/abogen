@@ -35,29 +35,30 @@ This method handles everything automatically - installing all dependencies inclu
 > [!NOTE]
 > You don't need to install Python separately. The script will install Python automatically.
 
-#### <b>OPTION 2: Install using uv</b>
-First, [install uv](https://docs.astral.sh/uv/getting-started/installation/) if you haven't already.
+#### <b>OPTION 2: Install from local repository</b>
 
 ```bash
+# Clone this repository first
+git clone https://github.com/YOUR_USERNAME/abogen-with-voicemarkers.git
+cd abogen-with-voicemarkers
+
 # For NVIDIA GPUs (CUDA 12.8) - Recommended
-uv tool install --python 3.12 abogen[cuda] --extra-index-url https://download.pytorch.org/whl/cu128 --index-strategy unsafe-best-match
+# Install PyTorch with CUDA support first
+pip install torch==2.8.0+cu128 torchvision==0.23.0+cu128 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128
 
-# For NVIDIA GPUs (CUDA 12.6) - Older drivers
-uv tool install --python 3.12 abogen[cuda126] --extra-index-url https://download.pytorch.org/whl/cu126 --index-strategy unsafe-best-match
-
-# For NVIDIA GPUs (CUDA 13.0) - Newer drivers
-uv tool install --python 3.12 abogen[cuda130] --extra-index-url https://download.pytorch.org/whl/cu130 --index-strategy unsafe-best-match
-
-# For AMD GPUs or without GPU - If you have AMD GPU, you need to use Linux for GPU acceleration, because ROCm is not available on Windows.
-uv tool install --python 3.12 abogen
+# Install from local directory in editable mode
+pip install -e .
 ```
 
 <details>
-<summary><b>Alternative: Install using pip (click to expand)</b></summary>
+<summary><b>Alternative: Install using pip with virtual environment (click to expand)</b></summary>
 
 ```bash
-# Create a virtual environment (optional)
-mkdir abogen && cd abogen
+# Clone this repository
+git clone https://github.com/YOUR_USERNAME/abogen-with-voicemarkers.git
+cd abogen-with-voicemarkers
+
+# Create a virtual environment (optional but recommended)
 python -m venv venv
 venv\Scripts\activate
 
@@ -68,92 +69,61 @@ pip install torch==2.8.0+cu128 torchvision==0.23.0+cu128 torchaudio==2.8.0 --ind
 # For AMD GPUs:
 # Not supported yet, because ROCm is not available on Windows. Use Linux if you have AMD GPU.
 
-# Install abogen
-pip install abogen
+# Install from local directory in editable mode
+pip install -e .
 ```
 
 </details>
 
 ### `Mac`
 
-First, [install uv](https://docs.astral.sh/uv/getting-started/installation/) if you haven't already.
-
 ```bash
 # Install espeak-ng
 brew install espeak-ng
 
-# For Silicon Mac (M1, M2 etc.)
-uv tool install --python 3.13 abogen --with "kokoro @ git+https://github.com/hexgrad/kokoro.git,numpy<2"
-
-# For Intel Mac
-uv tool install --python 3.12 abogen --with "kokoro @ git+https://github.com/hexgrad/kokoro.git,numpy<2"
-```
-
-<details>
-<summary><b>Alternative: Install using pip (click to expand)</b></summary>
-
-```bash
-# Install espeak-ng
-brew install espeak-ng
+# Clone this repository
+git clone https://github.com/YOUR_USERNAME/abogen-with-voicemarkers.git
+cd abogen-with-voicemarkers
 
 # Create a virtual environment (recommended)
-mkdir abogen && cd abogen
 python3 -m venv venv
 source venv/bin/activate
 
-# Install abogen
-pip3 install abogen
+# Install from local directory in editable mode
+pip3 install -e .
 
 # For Silicon Mac (M1, M2 etc.)
 # After installing abogen, we need to install Kokoro's development version which includes MPS support.
 pip3 install git+https://github.com/hexgrad/kokoro.git
 ```
 
-</details>
-
 ### `Linux`
 
-First, [install uv](https://docs.astral.sh/uv/getting-started/installation/) if you haven't already.
-
 ```bash
 # Install espeak-ng
 sudo apt install espeak-ng # Ubuntu/Debian
 sudo pacman -S espeak-ng # Arch Linux
 sudo dnf install espeak-ng # Fedora
 
-# For NVIDIA GPUs or without GPU - No need to include [cuda] in here.
-uv tool install --python 3.12 abogen
-
-# For AMD GPUs (ROCm 6.4)
-uv tool install --python 3.12 abogen[rocm] --extra-index-url https://download.pytorch.org/whl/nightly/rocm6.4 --index-strategy unsafe-best-match
-```
-
-<details>
-<summary><b>Alternative: Install using pip  (click to expand)</b></summary>
-
-```bash
-# Install espeak-ng
-sudo apt install espeak-ng # Ubuntu/Debian
-sudo pacman -S espeak-ng # Arch Linux
-sudo dnf install espeak-ng # Fedora
+# Clone this repository
+git clone https://github.com/YOUR_USERNAME/abogen-with-voicemarkers.git
+cd abogen-with-voicemarkers
 
 # Create a virtual environment (recommended)
-mkdir abogen && cd abogen
 python3 -m venv venv
 source venv/bin/activate
 
-# Install abogen
-pip3 install abogen
+# Install from local directory in editable mode
+pip3 install -e .
 
 # For NVIDIA GPUs:
 # Already supported, no need to install CUDA separately.
 
 # For AMD GPUs:
 # After installing abogen, we need to uninstall the existing torch package
-pip3 uninstall torch 
+pip3 uninstall torch
 pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/rocm6.4
 ```
-</details>
 
 
 > See [How to fix "CUDA GPU is not available. Using CPU" warning?](#cuda-warning)
@@ -236,7 +206,6 @@ Here’s Abogen in action: in this demo, it processes ∼3,000 characters of tex
 | **Use spaCy for sentence segmentation** | When this option is enabled, Abogen uses [spaCy](https://spacy.io/) to detect sentence boundaries more accurately, instead of using punctuation marks (like periods, question marks, etc.) to split sentences, which could incorrectly cut off phrases like "Mr." or "Dr.". With spaCy, sentences are divided more accurately. For non-English text, spaCy runs **before** audio generation to create sentence chunks. For English text, spaCy runs **during** subtitle generation to improve timing and readability. spaCy is only used when subtitle mode is `Sentence` or `Sentence + Comma`. If you prefer the old punctuation splitting method, you can turn this option off. |
 | **Pre-download models and voices for offline use** | Opens a window that displays the available models and voices. Click `Download all` button to download all required models and voices, allowing you to use Abogen completely offline without any internet connection. |
 | **Disable Kokoro's internet access** | Prevents Kokoro from downloading models or voices from HuggingFace Hub, useful for offline use. |
-| **Check for updates at startup** | Automatically checks for updates when the program starts. |
 | **Reset to default settings** | Resets all settings to their default values. |
 
 > Special thanks to [@robmckinnon](https://github.com/robmckinnon) for adding Sentence + Highlighting feature in PR [#65](https://github.com/denizsafak/abogen/pull/65)

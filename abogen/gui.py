@@ -812,7 +812,6 @@ class abogen(QWidget):
         self.config = load_config()
         self.apply_theme(self.config.get("theme", "system"))
         migrate_subtitle_format(self.config)
-        self.check_updates = self.config.get("check_updates", True)
         self.save_option = self.config.get("save_option", "Save next to input file")
         self.selected_output_folder = self.config.get("selected_output_folder", None)
         self.selected_file = self.selected_file_type = self.selected_book_path = None
@@ -921,10 +920,6 @@ class abogen(QWidget):
                     QIcon(self.loading_movie.currentPixmap())
                 )
             )
-
-        # Check for updates at startup if enabled
-        if self.check_updates:
-            QTimer.singleShot(1000, self.check_for_updates_startup)
 
         # Set hf_tracker callbacks
         hf_tracker.set_log_callback(self.update_log)
@@ -3370,12 +3365,6 @@ class abogen(QWidget):
         menu.addAction(disable_kokoro_action)
 
         # Add check for updates option
-        check_updates_action = QAction("Check for updates at startup", self)
-        check_updates_action.setCheckable(True)
-        check_updates_action.setChecked(self.config.get("check_updates", True))
-        check_updates_action.triggered.connect(self.toggle_check_updates)
-        menu.addAction(check_updates_action)
-
         # Add "Reset to default settings" option
         reset_defaults_action = QAction("Reset to default settings", self)
         reset_defaults_action.triggered.connect(self.reset_to_default_settings)
@@ -3677,10 +3666,6 @@ Categories=AudioVideo;Audio;Utility;
                 self, "Shortcut Error", f"Could not create shortcut:\n{e}"
             )
 
-    def toggle_check_updates(self, checked):
-        self.config["check_updates"] = checked
-        save_config(self.config)
-
     def show_voice_formula_dialog(self):
         from abogen.voice_profiles import load_profiles
 
@@ -3781,12 +3766,6 @@ Categories=AudioVideo;Audio;Utility;
         github_btn.setFixedHeight(32)
         layout.addWidget(github_btn)
 
-        # Check for updates button
-        update_btn = QPushButton("Check for updates")
-        update_btn.clicked.connect(self.manual_check_for_updates)
-        update_btn.setFixedHeight(32)
-        layout.addWidget(update_btn)
-
         # Close button
         close_btn = QPushButton("Close")
         close_btn.clicked.connect(dialog.accept)
@@ -3794,83 +3773,6 @@ Categories=AudioVideo;Audio;Utility;
         layout.addWidget(close_btn)
 
         dialog.exec()
-
-    def manual_check_for_updates(self):
-        """Manually check for updates and always show result"""
-        # Set a flag to always show the result message
-        self._show_update_check_result = True
-        self.check_for_updates_startup()
-
-    def check_for_updates_startup(self):
-        import urllib.request
-
-        def show_update_message(remote_version, local_version):
-            msg_box = QMessageBox(self)
-            msg_box.setIcon(QMessageBox.Icon.Information)
-            msg_box.setWindowTitle("Update Available")
-            msg_box.setText(
-                f"A new version of {PROGRAM_NAME} is available! ({local_version} > {remote_version})"
-            )
-            msg_box.setInformativeText(
-                f"If you installed via pip, update by running:\n"
-                f"pip install --upgrade {PROGRAM_NAME}\n\n"
-                f"If you're using the Windows portable version, run 'WINDOWS_INSTALL.bat' again.\n\n"
-                "Alternatively, visit the GitHub repository for more information. "
-                "Would you like to view the changelog?"
-            )
-            msg_box.setStandardButtons(
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-            )
-            msg_box.setDefaultButton(QMessageBox.StandardButton.Yes)
-            if msg_box.exec() == QMessageBox.StandardButton.Yes:
-                try:
-                    QDesktopServices.openUrl(QUrl(GITHUB_URL + "/releases/latest"))
-                except Exception:
-                    pass
-
-        # Reset flag to track if we should show "no updates" message
-        show_result = (
-            hasattr(self, "_show_update_check_result")
-            and self._show_update_check_result
-        )
-        self._show_update_check_result = False
-
-        try:
-            update_url = "https://raw.githubusercontent.com/denizsafak/abogen/refs/heads/main/abogen/VERSION"
-            with urllib.request.urlopen(update_url) as response:
-                remote_raw = response.read().decode().strip()
-            local_raw = VERSION
-
-            # Parse version numbers
-            remote_version = remote_raw
-            local_version = local_raw
-
-            try:
-                remote_num = int("".join(remote_version.split(".")))
-                local_num = int("".join(local_version.split(".")))
-            except ValueError as ve:
-                return
-
-            if remote_num > local_num:
-                # Use QTimer to ensure UI is ready, then show update message.
-                QTimer.singleShot(
-                    1000, lambda: show_update_message(remote_version, local_version)
-                )
-            elif show_result:
-                # Show "no updates" message if manually checking
-                QMessageBox.information(
-                    self,
-                    "Up to Date",
-                    f"You are running the latest version of {PROGRAM_NAME} ({local_version}).",
-                )
-        except Exception as e:
-            if show_result:
-                QMessageBox.warning(
-                    self,
-                    "Update Check Failed",
-                    f"Could not check for updates:\n{str(e)}",
-                )
-            pass
 
     def clear_cache_files(self):
         """Clear cache files created by the program."""
