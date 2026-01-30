@@ -41,6 +41,64 @@ def test_validate_voice_name():
     print("\n[PASS] All validation tests passed!\n")
 
 
+def test_case_insensitive_validation():
+    """Test that voice names are case-insensitive."""
+    print("=" * 60)
+    print("Testing case-insensitive voice names...")
+    print("=" * 60)
+
+    # Test uppercase
+    is_valid, invalid = validate_voice_name("AF_HEART")
+    print(f"[OK] AF_HEART (uppercase): valid={is_valid}")
+    assert is_valid and invalid is None
+
+    # Test mixed case
+    is_valid, invalid = validate_voice_name("Am_Fenrir")
+    print(f"[OK] Am_Fenrir (mixed case): valid={is_valid}")
+    assert is_valid and invalid is None
+
+    # Test formula with mixed case
+    is_valid, invalid = validate_voice_name("AF_Heart*0.5 + AM_Echo*0.5")
+    print(f"[OK] AF_Heart*0.5 + AM_Echo*0.5 (mixed case formula): valid={is_valid}")
+    assert is_valid and invalid is None
+
+    # Test that invalid names still fail regardless of case
+    is_valid, invalid = validate_voice_name("INVALID_VOICE")
+    print(f"[INVALID] INVALID_VOICE (uppercase): valid={is_valid}")
+    assert not is_valid
+
+    print("\n[PASS] Case-insensitive validation tests passed!\n")
+
+
+def test_voice_normalization():
+    """Test that voice names are normalized to canonical lowercase form."""
+    print("=" * 60)
+    print("Testing voice name normalization...")
+    print("=" * 60)
+
+    # Test normalization
+    text = """Default voice.
+<<VOICE:AM_FENRIR>>
+This should normalize to am_fenrir."""
+
+    segments, last_voice, valid_count, invalid_count = split_text_by_voice_markers(text, "af_heart")
+    print(f"Input voice: AM_FENRIR")
+    print(f"Normalized voice: {segments[1][0]}")
+    assert segments[1][0] == "am_fenrir", f"Expected 'am_fenrir', got '{segments[1][0]}'"
+
+    # Test formula normalization
+    text2 = """Default voice.
+<<VOICE:AF_Heart*0.5 + AM_Echo*0.5>>
+Mixed voice formula."""
+
+    segments2, last_voice2, valid_count2, invalid_count2 = split_text_by_voice_markers(text2, "af_heart")
+    print(f"Input formula: AF_Heart*0.5 + AM_Echo*0.5")
+    print(f"Normalized formula: {segments2[1][0]}")
+    assert segments2[1][0] == "af_heart*0.5 + am_echo*0.5", f"Expected normalized formula, got '{segments2[1][0]}'"
+
+    print("\n[PASS] Voice normalization test passed!\n")
+
+
 def test_split_text_by_voice_markers():
     """Test text splitting by voice markers."""
     print("=" * 60)
@@ -49,7 +107,7 @@ def test_split_text_by_voice_markers():
 
     # Test 1: No voice markers
     text1 = "This is plain text without markers."
-    segments1, last_voice1 = split_text_by_voice_markers(text1, "af_heart")
+    segments1, last_voice1, valid_count1, invalid_count1 = split_text_by_voice_markers(text1, "af_heart")
     print(f"\nTest 1: No markers")
     print(f"  Segments: {segments1}")
     print(f"  Last voice: {last_voice1}")
@@ -61,7 +119,7 @@ def test_split_text_by_voice_markers():
     text2 = """First part with default voice.
 <<VOICE:bf_alice>>
 Second part with British female voice."""
-    segments2, last_voice2 = split_text_by_voice_markers(text2, "af_heart")
+    segments2, last_voice2, valid_count2, invalid_count2 = split_text_by_voice_markers(text2, "af_heart")
     print(f"\nTest 2: Single voice change")
     for i, (voice, text) in enumerate(segments2):
         print(f"  Segment {i+1}: voice={voice}, text='{text[:50]}...'")
@@ -77,7 +135,7 @@ Second part with British female voice."""
 British female.
 <<VOICE:am_fenrir>>
 American male."""
-    segments3, last_voice3 = split_text_by_voice_markers(text3, "af_heart")
+    segments3, last_voice3, valid_count3, invalid_count3 = split_text_by_voice_markers(text3, "af_heart")
     print(f"\nTest 3: Multiple voice changes")
     for i, (voice, text) in enumerate(segments3):
         print(f"  Segment {i+1}: voice={voice}, text='{text[:30]}...'")
@@ -94,7 +152,7 @@ American male."""
 British female.
 <<VOICE:invalid_voice>>
 Should continue with bf_alice."""
-    segments4, last_voice4 = split_text_by_voice_markers(text4, "af_heart")
+    segments4, last_voice4, valid_count4, invalid_count4 = split_text_by_voice_markers(text4, "af_heart")
     print(f"\nTest 4: Invalid voice (fallback to previous)")
     for i, (voice, text) in enumerate(segments4):
         print(f"  Segment {i+1}: voice={voice}, text='{text[:30]}...'")
@@ -109,7 +167,7 @@ Should continue with bf_alice."""
     text5 = """Default voice.
 <<VOICE:af_heart*0.5 + am_echo*0.5>>
 Mixed voice formula."""
-    segments5, last_voice5 = split_text_by_voice_markers(text5, "af_heart")
+    segments5, last_voice5, valid_count5, invalid_count5 = split_text_by_voice_markers(text5, "af_heart")
     print(f"\nTest 5: Voice formula")
     for i, (voice, text) in enumerate(segments5):
         print(f"  Segment {i+1}: voice={voice}, text='{text[:30]}...'")
@@ -140,7 +198,7 @@ def test_voice_persistence_across_chapters():
     all_segments = []
 
     for chapter_name, chapter_text in chapters:
-        segments, last_voice = split_text_by_voice_markers(chapter_text, current_voice)
+        segments, last_voice, valid_count, invalid_count = split_text_by_voice_markers(chapter_text, current_voice)
         all_segments.append((chapter_name, segments))
         current_voice = last_voice  # Voice persists to next chapter
 
@@ -164,6 +222,8 @@ def test_voice_persistence_across_chapters():
 if __name__ == "__main__":
     try:
         test_validate_voice_name()
+        test_case_insensitive_validation()
+        test_voice_normalization()
         test_split_text_by_voice_markers()
         test_voice_persistence_across_chapters()
 

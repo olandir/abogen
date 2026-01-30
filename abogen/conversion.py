@@ -583,21 +583,34 @@ class ConversionThread(QThread):
             # Split each chapter by voice markers, preserving voice state across chapters
             chapters_with_voices = []
             current_voice = self.voice  # Start with default voice
+            total_valid_markers = 0
+            total_invalid_markers = 0
 
             for chapter_name, chapter_text in chapters:
                 # Use current_voice as the starting voice for this chapter
-                voice_segments, last_voice = split_text_by_voice_markers(chapter_text, current_voice)
+                voice_segments, last_voice, valid_count, invalid_count = split_text_by_voice_markers(chapter_text, current_voice)
                 chapters_with_voices.append((chapter_name, voice_segments))
 
                 # Update current_voice so next chapter continues with this voice
                 current_voice = last_voice
 
-            # Log if voice markers were found
-            total_voice_segments = sum(len(segments) for _, segments in chapters_with_voices)
-            if total_voice_segments > len(chapters):
-                self.log_updated.emit(
-                    (f"\nDetected {total_voice_segments - len(chapters)} voice change(s) across all chapters", "grey")
-                )
+                # Track total valid/invalid markers
+                total_valid_markers += valid_count
+                total_invalid_markers += invalid_count
+
+            # Log voice marker information with accurate counts
+            total_markers = total_valid_markers + total_invalid_markers
+            if total_markers > 0:
+                if total_invalid_markers == 0:
+                    # All markers were valid
+                    self.log_updated.emit(
+                        (f"\nDetected {total_markers} voice marker(s) - all valid", "grey")
+                    )
+                else:
+                    # Some markers were invalid
+                    self.log_updated.emit(
+                        (f"\nDetected {total_markers} voice marker(s) - {total_valid_markers} valid, {total_invalid_markers} invalid (using previous voice)", "orange")
+                    )
 
             # Replace chapters with the new structure
             chapters = chapters_with_voices
@@ -1132,8 +1145,8 @@ class ConversionThread(QThread):
                                 ("\nspaCy: Fallback to default segmentation...", "grey")
                             )
 
-                        # Process text - either as spaCy sentences or as single text
-                        text_segments = spacy_sentences if spacy_sentences else [segment_text]
+                    # Process text - either as spaCy sentences or as single text
+                    text_segments = spacy_sentences if spacy_sentences else [segment_text]
 
                     # Print active split pattern used by the TTS engine once for this batch
                     try:

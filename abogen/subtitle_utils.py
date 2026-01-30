@@ -464,7 +464,7 @@ def sanitize_name_for_os(name, is_folder=True):
 
 
 def validate_voice_name(voice_name):
-    """Validate voice name against VOICES_INTERNAL list.
+    """Validate voice name against VOICES_INTERNAL list (case-insensitive).
     Handles both single voices and formulas like 'af_heart*0.5 + am_echo*0.5'.
 
     Args:
@@ -477,6 +477,8 @@ def validate_voice_name(voice_name):
     """
     from abogen.constants import VOICES_INTERNAL
 
+    # Create case-insensitive lookup set (done once per call)
+    voice_lookup_lower = {v.lower() for v in VOICES_INTERNAL}
     voice_name = voice_name.strip()
 
     # Check if it's a formula (contains *)
@@ -486,12 +488,13 @@ def validate_voice_name(voice_name):
         for term in voices:
             if "*" in term:
                 base_voice = term.split("*")[0].strip()
-                if base_voice not in VOICES_INTERNAL:
+                # Case-insensitive comparison
+                if base_voice.lower() not in voice_lookup_lower:
                     return False, base_voice
         return True, None
     else:
-        # Single voice
-        if voice_name not in VOICES_INTERNAL:
+        # Single voice - case-insensitive comparison
+        if voice_name.lower() not in voice_lookup_lower:
             return False, voice_name
         return True, None
 
@@ -500,24 +503,31 @@ def split_text_by_voice_markers(text, default_voice):
     """Split text by voice markers, returning list of (voice, text) tuples.
 
     IMPORTANT: Returns the last voice used so it can persist across chapters.
+    Voice names are normalized to lowercase to match VOICES_INTERNAL.
 
     Args:
         text: Text potentially containing <<VOICE:name>> markers
         default_voice: Voice to use if no markers found or before first marker
 
     Returns:
-        Tuple of (segments_list, last_voice_used):
+        Tuple of (segments_list, last_voice_used, valid_count, invalid_count):
             - segments_list: List of (voice_name, segment_text) tuples
             - last_voice_used: The voice that should continue into next chapter
+            - valid_count: Number of valid voice markers processed
+            - invalid_count: Number of invalid voice markers skipped
     """
+    from abogen.constants import VOICES_INTERNAL
+
     voice_splits = list(_VOICE_MARKER_SEARCH_PATTERN.finditer(text))
 
     if not voice_splits:
         # No voice markers, return entire text with default voice
-        return [(default_voice, text)], default_voice
+        return [(default_voice, text)], default_voice, 0, 0
 
     segments = []
     current_voice = default_voice
+    valid_markers = 0
+    invalid_markers = 0
 
     # Text before first marker uses default voice
     first_start = voice_splits[0].start()
@@ -536,11 +546,31 @@ def split_text_by_voice_markers(text, default_voice):
         # Validate voice name
         is_valid, invalid_voice = validate_voice_name(voice_name)
         if is_valid:
-            current_voice = voice_name
-        # If invalid, current_voice stays the same (fallback behavior)
+            # Normalize to lowercase to match canonical form
+            # Handle both single voices and formulas
+            if "*" in voice_name:
+                # Normalize each voice in the formula
+                normalized_parts = []
+                for part in voice_name.split("+"):
+                    part = part.strip()
+                    if "*" in part:
+                        voice_part, weight = part.split("*", 1)
+                        # Find the canonical (lowercase) voice name
+                        voice_part_lower = voice_part.strip().lower()
+                        canonical_voice = next((v for v in VOICES_INTERNAL if v.lower() == voice_part_lower), voice_part.strip())
+                        normalized_parts.append(f"{canonical_voice}*{weight.strip()}")
+                current_voice = " + ".join(normalized_parts)
+            else:
+                # Find the canonical (lowercase) voice name
+                voice_name_lower = voice_name.lower()
+                current_voice = next((v for v in VOICES_INTERNAL if v.lower() == voice_name_lower), voice_name)
+            valid_markers += 1
+        else:
+            # Invalid voice - stay with previous voice
+            invalid_markers += 1
 
         if segment_text:
             segments.append((current_voice, segment_text))
 
-    # Return segments AND the last voice used (to persist to next chapter)
-    return segments, current_voice
+    # Return segments, last voice, and counts
+    return segments, current_voice, valid_markers, invalid_markers
