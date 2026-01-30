@@ -285,6 +285,71 @@ When you process the text file, Abogen will detect these markers automatically a
 
 ![Abogen Chapter Marker](https://raw.githubusercontent.com/denizsafak/abogen/refs/heads/main/demo/chapter_marker.png)
 
+## `About Voice Markers`
+Voice markers allow you to dynamically switch between different TTS voices within your text, perfect for audiobooks with multiple characters or narrators. Voice changes persist across chapter boundaries, creating a seamless listening experience.
+
+### How to use voice markers
+Add voice markers in your text like this:
+```
+This is narrated with the default voice.
+
+<<VOICE:bf_alice>>
+This section uses British female voice Alice.
+
+<<VOICE:am_fenrir>>
+Now we switch to American male voice Fenrir.
+
+<<CHAPTER_MARKER:Chapter Two>>
+This chapter continues with Fenrir - the voice persists!
+```
+
+### Key Features
+- **Voice persistence**: Once a voice is set, it continues through subsequent chapters until you change it
+- **Invalid voice fallback**: If a voice name is invalid, Abogen continues with the previous voice and logs a warning
+- **Case-insensitive**: Voice names work in any case (`AM_FENRIR`, `am_fenrir`, `Am_Fenrir`)
+- **Voice formulas**: Mix voices with formulas like `<<VOICE:af_heart*0.5 + am_echo*0.5>>`
+- **GUI support**: Use the "Insert Voice Marker" button to quickly add markers
+
+### Available Voices
+All 48 Kokoro voices are supported:
+
+**American English (a):**
+- Female: `af_alloy`, `af_aoede`, `af_bella`, `af_heart`, `af_jessica`, `af_kore`, `af_nicole`, `af_nova`, `af_river`, `af_sarah`, `af_sky`
+- Male: `am_adam`, `am_echo`, `am_eric`, `am_fenrir`, `am_liam`, `am_michael`, `am_onyx`, `am_puck`, `am_santa`
+
+**British English (b):**
+- Female: `bf_alice`, `bf_emma`, `bf_isabella`, `bf_lily`
+- Male: `bm_daniel`, `bm_fable`, `bm_george`, `bm_lewis`
+
+**Spanish (e):**
+- Female: `ef_dora`
+- Male: `em_alex`, `em_santa`
+
+**French (f):**
+- Female: `ff_siwis`
+
+**Hindi (h):**
+- Female: `hf_alpha`, `hf_beta`
+- Male: `hm_omega`, `hm_psi`
+
+**Italian (i):**
+- Female: `if_sara`
+- Male: `im_nicola`
+
+**Japanese (j):**
+- Female: `jf_alpha`, `jf_gongitsune`, `jf_nezumi`, `jf_tebukuro`
+- Male: `jm_kumo`
+
+**Brazilian Portuguese (p):**
+- Female: `pf_dora`
+- Male: `pm_alex`, `pm_santa`
+
+**Mandarin Chinese (z):**
+- Female: `zf_xiaobei`, `zf_xiaoni`, `zf_xiaoxiao`, `zf_xiaoyi`
+- Male: `zm_yunjian`, `zm_yunxi`, `zm_yunxia`, `zm_yunyang`
+
+For voice samples, see Kokoro's [SAMPLES.md](https://huggingface.co/hexgrad/Kokoro-82M/blob/main/SAMPLES.md).
+
 ## `About Metadata Tags`
 Similar to chapter markers, it is possible to add metadata tags for `M4B` files. This is useful for audiobook players that support metadata, allowing you to add information like title, author, year, etc. Abogen automatically adds these tags when you process ePUB, PDF or markdown files, but you can also add them manually to your text files. Add metadata tags **at the beginning of your text file** like this:
 ```
