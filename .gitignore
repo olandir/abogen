@@ -33,3 +33,4 @@ python_embedded/
 build/
 dist/
 .old/
+.claude
