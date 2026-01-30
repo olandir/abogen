@@ -665,6 +665,11 @@ class TextboxDialog(QDialog):
         self.insert_chapter_btn.clicked.connect(self.insert_chapter_marker)
         button_layout.addWidget(self.insert_chapter_btn)
 
+        self.insert_voice_btn = QPushButton("Insert Voice Marker", self)
+        self.insert_voice_btn.setToolTip("Insert a voice change marker at the cursor position")
+        self.insert_voice_btn.clicked.connect(self.insert_voice_marker)
+        button_layout.addWidget(self.insert_voice_btn)
+
         self.cancel_button = QPushButton("Cancel", self)
         self.cancel_button.clicked.connect(self.reject)
 
@@ -763,6 +768,24 @@ class TextboxDialog(QDialog):
         # Insert a fixed chapter marker without prompting
         cursor = self.text_edit.textCursor()
         cursor.insertText("\n<<CHAPTER_MARKER:Title>>\n")
+        self.text_edit.setTextCursor(cursor)
+        self.update_char_count()
+        self.text_edit.setFocus()
+
+    def insert_voice_marker(self):
+        """Insert a voice marker template at cursor position."""
+        cursor = self.text_edit.textCursor()
+        # Use the currently selected voice as the default
+        # Access the parent window's selected voice if available
+        try:
+            parent_window = self.parent()
+            if parent_window and hasattr(parent_window, 'selected_voice'):
+                default_voice = parent_window.selected_voice or "af_heart"
+            else:
+                default_voice = "af_heart"
+        except:
+            default_voice = "af_heart"
+        cursor.insertText(f"\n<<VOICE:{default_voice}>>\n")
         self.text_edit.setTextCursor(cursor)
         self.update_char_count()
         self.text_edit.setFocus()
