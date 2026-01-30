@@ -31,28 +31,24 @@ set PYTHON_PATH=python_embedded\pythonw.exe
 set PYTHON_CONSOLE_PATH=python_embedded\python.exe
 
 :: ---------------------------------------------------------
-:: Version Selection
+:: Version Selection - Forced to Dev Mode for Voice Marker Fork
 :: ---------------------------------------------------------
+:: Force dev mode installation for voice marker fork
+set INSTALL_SOURCE=dev
 echo.
-echo Select installation version:
-echo [1] Stable (PyPI)  - Safer, recommended for most users.
-echo [2] Dev (Local)    - Install from current folder (may include commits after the latest release).
-echo.
-choice /C 12 /M "Your choice"
-
-if errorlevel 2 (
-    set INSTALL_SOURCE=dev
-    echo.
-    echo Selected: Dev - Local Editable
-) else (
-    set INSTALL_SOURCE=pypi
-    echo.
-    echo Selected: Stable - PyPI
-)
+echo Installation mode: Dev (Local) - Installing from current folder
+echo This fork includes voice marker functionality not available in upstream.
 echo.
 :: ---------------------------------------------------------
 
-:: Check for updates
+:: ---------------------------------------------------------
+:: Update check disabled for voice marker fork
+:: This prevents accidentally overwriting voice marker modifications
+:: with upstream code that doesn't include these features.
+:: ---------------------------------------------------------
+goto continue_with_current_version
+
+:: Check for updates (DISABLED - see note above)
 echo Checking for updates...
 set VERSION_FILE=%PROJECTFOLDER%\VERSION
 set VERSION_URL=https://raw.githubusercontent.com/denizsafak/abogen/refs/heads/main/abogen/VERSION

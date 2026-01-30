@@ -26,8 +26,8 @@ https://github.com/user-attachments/assets/094ba3df-7d66-494a-bc31-0e4b41d0b865
 Go to [espeak-ng latest release](https://github.com/espeak-ng/espeak-ng/releases/latest) download and run the *.msi file.
 
 #### <b>OPTION 1: Install using script</b>
-1. [Download](https://github.com/denizsafak/abogen/archive/refs/heads/main.zip) the repository
-2. Extract the ZIP file
+1. Download or clone this repository
+2. Extract the ZIP file (if downloaded as ZIP)
 3. Run `WINDOWS_INSTALL.bat` by double-clicking it
 
 This method handles everything automatically - installing all dependencies including CUDA in a self-contained environment without requiring a separate Python installation. (You still need to install [espeak-ng](https://github.com/espeak-ng/espeak-ng/releases/latest).)
