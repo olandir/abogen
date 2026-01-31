@@ -806,6 +806,108 @@ def migrate_subtitle_format(config):
         save_config(config)
 
 
+class WordSubstitutionsDialog(QDialog):
+    """Dialog for configuring word substitutions and text preprocessing options."""
+
+    def __init__(
+        self,
+        parent=None,
+        initial_list="",
+        initial_case_sensitive=False,
+        initial_caps=False,
+        initial_numerals=False,
+        initial_punctuation=False,
+    ):
+        super().__init__(parent)
+        self.setWindowTitle("Word Substitutions Settings")
+        self.setWindowFlags(
+            Qt.WindowType.Window
+            | Qt.WindowType.WindowCloseButtonHint
+            | Qt.WindowType.WindowMaximizeButtonHint
+        )
+        self.resize(600, 500)
+
+        layout = QVBoxLayout(self)
+
+        # Instructions
+        instructions = QLabel(
+            "Enter word substitutions (one per line) in format: Word|NewWord\n"
+            "  - If nothing after |, the word will be erased completely\n"
+            "  - Substitutions match whole words only (e.g., \"tree\" won't match \"trees\" but will match \"tree's\")\n"
+            "  - By default, matching is case-insensitive (e.g., \"gonna\" matches \"Gonna\", \"GONNA\", etc.)",
+            self,
+        )
+        instructions.setStyleSheet(
+            "padding: 10px; background-color: #f0f0f0; border-radius: 5px;"
+        )
+        instructions.setWordWrap(True)
+        layout.addWidget(instructions)
+
+        # Text edit area
+        self.text_edit = QTextEdit(self)
+        self.text_edit.setAcceptRichText(False)
+        self.text_edit.setPlaceholderText("Word|NewWord")
+        self.text_edit.setPlainText(initial_list)
+        layout.addWidget(self.text_edit)
+
+        # Checkboxes
+        self.case_sensitive_checkbox = QCheckBox(
+            "Case-sensitive word matching", self
+        )
+        self.case_sensitive_checkbox.setChecked(initial_case_sensitive)
+        layout.addWidget(self.case_sensitive_checkbox)
+
+        self.caps_checkbox = QCheckBox("Replace ALL CAPS with lowercase", self)
+        self.caps_checkbox.setChecked(initial_caps)
+        layout.addWidget(self.caps_checkbox)
+
+        self.numerals_checkbox = QCheckBox(
+            "Replace Numerals with Words (e.g., 309 → three hundred and nine)", self
+        )
+        self.numerals_checkbox.setChecked(initial_numerals)
+        layout.addWidget(self.numerals_checkbox)
+
+        self.punctuation_checkbox = QCheckBox(
+            "Fix Nonstandard Punctuation (curly quotes and other Unicode punctuation that may affect how words sound)",
+            self,
+        )
+        self.punctuation_checkbox.setChecked(initial_punctuation)
+        layout.addWidget(self.punctuation_checkbox)
+
+        # Buttons
+        button_layout = QHBoxLayout()
+        self.cancel_button = QPushButton("Cancel", self)
+        self.cancel_button.clicked.connect(self.reject)
+        self.ok_button = QPushButton("OK", self)
+        self.ok_button.setDefault(True)
+        self.ok_button.clicked.connect(self.accept)
+
+        button_layout.addStretch()
+        button_layout.addWidget(self.cancel_button)
+        button_layout.addWidget(self.ok_button)
+        layout.addLayout(button_layout)
+
+    def get_substitutions_list(self):
+        """Get the substitutions list as plain text."""
+        return self.text_edit.toPlainText()
+
+    def get_case_sensitive(self):
+        """Get whether case-sensitive matching is enabled."""
+        return self.case_sensitive_checkbox.isChecked()
+
+    def get_replace_all_caps(self):
+        """Get whether ALL CAPS replacement is enabled."""
+        return self.caps_checkbox.isChecked()
+
+    def get_replace_numerals(self):
+        """Get whether numeral-to-word conversion is enabled."""
+        return self.numerals_checkbox.isChecked()
+
+    def get_fix_nonstandard_punctuation(self):
+        """Get whether nonstandard punctuation fixing is enabled."""
+        return self.punctuation_checkbox.isChecked()
+
+
 class abogen(QWidget):
     def __init__(self):
         super().__init__()
@@ -855,6 +957,19 @@ class abogen(QWidget):
         self.use_silent_gaps = self.config.get("use_silent_gaps", True)
         self.subtitle_speed_method = self.config.get("subtitle_speed_method", "tts")
         self.use_spacy_segmentation = self.config.get("use_spacy_segmentation", True)
+        # Word substitution settings
+        self.word_substitutions_enabled = self.config.get(
+            "word_substitutions_enabled", False
+        )
+        self.word_substitutions_list = self.config.get("word_substitutions_list", "")
+        self.case_sensitive_substitutions = self.config.get(
+            "case_sensitive_substitutions", False
+        )
+        self.replace_all_caps = self.config.get("replace_all_caps", False)
+        self.replace_numerals = self.config.get("replace_numerals", False)
+        self.fix_nonstandard_punctuation = self.config.get(
+            "fix_nonstandard_punctuation", False
+        )
         self._pending_close_event = None
         self.gpu_ok = False  # Initialize GPU availability status
 
@@ -1050,6 +1165,32 @@ class abogen(QWidget):
         self.play_audio_thread = None  # Keep track of audio playing thread
         controls_layout.addLayout(voice_layout)
 
+        # Word Substitutions section
+        word_sub_layout = QHBoxLayout()
+        word_sub_layout.setSpacing(7)
+        word_sub_label = QLabel("Word Substitutions:", self)
+        word_sub_layout.addWidget(word_sub_label)
+
+        self.word_sub_combo = QComboBox(self)
+        self.word_sub_combo.addItems(["Disabled", "Enabled"])
+        self.word_sub_combo.setStyleSheet(
+            "QComboBox { min-height: 20px; padding: 6px 12px; }"
+        )
+        self.word_sub_combo.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+        )
+        self.word_sub_combo.currentTextChanged.connect(self.on_word_sub_changed)
+        word_sub_layout.addWidget(self.word_sub_combo)
+
+        self.btn_word_sub_settings = QPushButton("Settings", self)
+        self.btn_word_sub_settings.setFixedSize(80, 36)
+        self.btn_word_sub_settings.setStyleSheet("QPushButton { padding: 6px 12px; }")
+        self.btn_word_sub_settings.clicked.connect(self.show_word_sub_dialog)
+        self.btn_word_sub_settings.setEnabled(False)  # Initially disabled
+        word_sub_layout.addWidget(self.btn_word_sub_settings)
+
+        controls_layout.addLayout(word_sub_layout)
+
         # Generate subtitles
         subtitle_layout = QHBoxLayout()
         subtitle_layout.setSpacing(7)
@@ -1088,6 +1229,11 @@ class abogen(QWidget):
         self.subtitle_combo.currentTextChanged.connect(self.on_subtitle_mode_changed)
         subtitle_layout.addWidget(self.subtitle_combo)
         controls_layout.addLayout(subtitle_layout)
+
+        # Set initial state for word substitution combo
+        self.word_sub_combo.setCurrentText(
+            "Enabled" if self.word_substitutions_enabled else "Disabled"
+        )
 
         # Output voice format
         format_layout = QHBoxLayout()
@@ -1921,6 +2067,12 @@ class abogen(QWidget):
             save_base_path=save_base_path,
             save_chapters_separately=getattr(self, "save_chapters_separately", None),
             merge_chapters_at_end=getattr(self, "merge_chapters_at_end", None),
+            word_substitutions_enabled=self.word_substitutions_enabled,
+            word_substitutions_list=self.word_substitutions_list,
+            case_sensitive_substitutions=self.case_sensitive_substitutions,
+            replace_all_caps=self.replace_all_caps,
+            replace_numerals=self.replace_numerals,
+            fix_nonstandard_punctuation=self.fix_nonstandard_punctuation,
         )
 
         # Prevent adding duplicate items to the queue
@@ -2033,6 +2185,21 @@ class abogen(QWidget):
                 self.subtitle_speed_method = getattr(
                     queued_item, "subtitle_speed_method", "tts"
                 )
+                # Word substitution settings
+                self.word_substitutions_enabled = getattr(
+                    queued_item, "word_substitutions_enabled", False
+                )
+                self.word_substitutions_list = getattr(
+                    queued_item, "word_substitutions_list", ""
+                )
+                self.case_sensitive_substitutions = getattr(
+                    queued_item, "case_sensitive_substitutions", False
+                )
+                self.replace_all_caps = getattr(queued_item, "replace_all_caps", False)
+                self.replace_numerals = getattr(queued_item, "replace_numerals", False)
+                self.fix_nonstandard_punctuation = getattr(
+                    queued_item, "fix_nonstandard_punctuation", False
+                )
 
                 # This ensures that if conversion.py (or utils) reads from config/disk 
                 # instead of using passed arguments, it sees the correct queue values.
@@ -2041,7 +2208,20 @@ class abogen(QWidget):
                 self.config["selected_format"] = self.selected_format
                 self.config["use_silent_gaps"] = self.use_silent_gaps
                 self.config["subtitle_speed_method"] = self.subtitle_speed_method
-                
+                # Word substitution settings
+                self.config[
+                    "word_substitutions_enabled"
+                ] = self.word_substitutions_enabled
+                self.config["word_substitutions_list"] = self.word_substitutions_list
+                self.config[
+                    "case_sensitive_substitutions"
+                ] = self.case_sensitive_substitutions
+                self.config["replace_all_caps"] = self.replace_all_caps
+                self.config["replace_numerals"] = self.replace_numerals
+                self.config[
+                    "fix_nonstandard_punctuation"
+                ] = self.fix_nonstandard_punctuation
+
                 # Sync Voice/Profile in config
                 self.config["selected_voice"] = self.selected_voice
                 if "selected_profile_name" in self.config:
@@ -2197,6 +2377,21 @@ class abogen(QWidget):
             self.conversion_thread.subtitle_speed_method = self.subtitle_speed_method
             # Pass use_spacy_segmentation setting
             self.conversion_thread.use_spacy_segmentation = self.use_spacy_segmentation
+            # Pass word substitution settings
+            self.conversion_thread.word_substitutions_enabled = (
+                self.word_substitutions_enabled
+            )
+            self.conversion_thread.word_substitutions_list = (
+                self.word_substitutions_list
+            )
+            self.conversion_thread.case_sensitive_substitutions = (
+                self.case_sensitive_substitutions
+            )
+            self.conversion_thread.replace_all_caps = self.replace_all_caps
+            self.conversion_thread.replace_numerals = self.replace_numerals
+            self.conversion_thread.fix_nonstandard_punctuation = (
+                self.fix_nonstandard_punctuation
+            )
             # Pass separate_chapters_format setting
             self.conversion_thread.separate_chapters_format = (
                 self.separate_chapters_format
@@ -2944,6 +3139,45 @@ class abogen(QWidget):
         self.use_gpu = state == Qt.CheckState.Checked.value
         self.config["use_gpu"] = self.use_gpu
         save_config(self.config)
+
+    def on_word_sub_changed(self, text):
+        """Handle word substitution dropdown change."""
+        self.word_substitutions_enabled = text == "Enabled"
+        self.btn_word_sub_settings.setEnabled(self.word_substitutions_enabled)
+
+        # Save to config
+        self.config["word_substitutions_enabled"] = self.word_substitutions_enabled
+        save_config(self.config)
+
+    def show_word_sub_dialog(self):
+        """Show word substitutions settings dialog."""
+        dialog = WordSubstitutionsDialog(
+            self,
+            initial_list=self.word_substitutions_list,
+            initial_case_sensitive=self.case_sensitive_substitutions,
+            initial_caps=self.replace_all_caps,
+            initial_numerals=self.replace_numerals,
+            initial_punctuation=self.fix_nonstandard_punctuation,
+        )
+
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self.word_substitutions_list = dialog.get_substitutions_list()
+            self.case_sensitive_substitutions = dialog.get_case_sensitive()
+            self.replace_all_caps = dialog.get_replace_all_caps()
+            self.replace_numerals = dialog.get_replace_numerals()
+            self.fix_nonstandard_punctuation = dialog.get_fix_nonstandard_punctuation()
+
+            # Save all settings to config
+            self.config["word_substitutions_list"] = self.word_substitutions_list
+            self.config[
+                "case_sensitive_substitutions"
+            ] = self.case_sensitive_substitutions
+            self.config["replace_all_caps"] = self.replace_all_caps
+            self.config["replace_numerals"] = self.replace_numerals
+            self.config[
+                "fix_nonstandard_punctuation"
+            ] = self.fix_nonstandard_punctuation
+            save_config(self.config)
 
     def cleanup_conversion_thread(self):
         # Stop conversion thread

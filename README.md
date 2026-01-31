@@ -1,9 +1,11 @@
 # abogen 
 
-## Important Note
+## Important Notes
 - The Abogen project is created and maintained by [denizsafak](https://github.com/denizsafak). This is just a fork of the original project located [here](https://github.com/denizsafak/abogen) and is not kept as up to date. This is based off of the current 1.2.5 version of the original project.
 
 - This fork adds a feature for Voice Markers, allowing you to add markers in the text to have the script automatically switch voices whenever you want to add a little more flexibility to creating audiobooks so that you can have multiple voices easily. There are instructions below on how to do that.
+
+- This fork adds a Word Substitution feature that allows you to preprocess text before audio generation. You can replace words/phrases, convert ALL CAPS to lowercase, convert numerals to words, and fix nonstandard punctuation (like curly quotes) that can interfere with TTS pronunciation. All substitutions preserve chapter markers, voice markers, metadata tags, and timestamps.
 
 - The code was edited using AI (Claude) and although I've tested it and spot checked to make sure it's all accurate, it's AI so the code will not be as clean as if a human wrote it. Use at your own risk. This is a fork, so I couldn't make it private, so I'm including this in the README in case someone tries to use this fork. 
 
@@ -170,6 +172,7 @@ Here’s Abogen in action: in this demo, it processes ∼3,000 characters of tex
 | **Queue options** | Add multiple files to a queue and process them in batch, with individual settings for each file. See [Queue mode](#queue-mode) for more details. |
 | **Speed** | Adjust speech rate from `0.1x` to `2.0x` |
 | **Select Voice** | First letter of the language code (e.g., `a` for American English, `b` for British English, etc.), second letter is for `m` for male and `f` for female. |
+| **Word Substitutions** | Enable text preprocessing to replace words, convert ALL CAPS to lowercase, convert numerals to words, and fix nonstandard punctuation. See [Word Substitution](#word-substitution) for more details. |
 | **Voice mixer** | Create custom voices by mixing different voice models with a profile system. See [Voice Mixer](#voice-mixer) for more details. |
 | **Voice preview** | Listen to the selected voice before processing. |
 | **Generate subtitles** | `Disabled`, `Line`, `Sentence`, `Sentence + Comma`, `Sentence + Highlighting`, `1 word`, `2 words`, `3 words`, etc. (Represents the number of words in each subtitle entry) |
@@ -231,6 +234,53 @@ Abogen supports **queue mode**, allowing you to add multiple files to a processi
 Abogen will process each item in the queue automatically, saving outputs as configured.
 
 > Special thanks to [@jborza](https://github.com/jborza) for adding queue mode in PR [#35](https://github.com/denizsafak/abogen/pull/35)
+
+## `Word Substitution`
+
+The Word Substitution feature allows you to preprocess text before audio generation, improving TTS pronunciation and consistency. This is especially useful for audiobooks where certain words, punctuation, or formatting can cause pronunciation issues.
+
+### How to Use
+
+1. Locate the **Word Substitutions** dropdown (under "Select Voice" in the main window)
+2. Change from "Disabled" to "Enabled"
+3. Click the **Settings** button to configure your substitutions
+
+### Substitution Settings
+
+The Word Substitutions Settings dialog provides the following options:
+
+**Word Substitution List:**
+- Enter word substitutions in the format: `Word|NewWord` (one per line)
+- If nothing appears after the `|`, the word will be completely removed
+- Examples:
+  - `gonna|going to` - Replaces "gonna" with "going to"
+  - `Mr.|Mister` - Replaces "Mr." with "Mister"
+  - `um|` - Removes the word "um" entirely
+
+**Matching Options:**
+- **Case-sensitive word matching** (checkbox): By default, matching is case-insensitive, meaning "gonna", "Gonna", and "GONNA" all match. Enable this checkbox to require exact case matching.
+- **Whole word matching**: Substitutions only match complete words. For example, "tree" will match "tree's" and "tree-shaped" but NOT "trees" or "treehouse".
+
+**Additional Preprocessing Options:**
+- **Replace ALL CAPS with lowercase** (checkbox): Converts words in ALL CAPS to lowercase, which helps TTS engines pronounce them correctly. Example: "HELLO" becomes "hello".
+- **Replace Numerals with Words** (checkbox): Converts numbers to their word equivalents for better pronunciation. Example: "309" becomes "three hundred and nine". Requires the `num2words` Python package.
+- **Fix Nonstandard Punctuation** (checkbox): Converts curly quotes and other Unicode punctuation characters to standard keyboard equivalents. This prevents pronunciation issues caused by nonstandard characters. Examples: curly quotes ("") become straight quotes ("), ellipsis (…) becomes three periods (...).
+
+### Important Notes
+
+- **Marker Preservation**: Word substitutions never affect Chapter Markers (`<<CHAPTER_MARKER:...>>`), Voice Markers (`<<VOICE:...>>`), Metadata Tags (`<<METADATA_...>>`), or timestamps (in `HH:MM:SS` format). These are always preserved exactly as written.
+- **Original Files**: The original text files in your cache remain unchanged. Substitutions are applied in-memory only during audio generation.
+- **Queue Support**: Each item in the queue can have its own word substitution settings. Use the "Override item settings with current selection" checkbox in the Queue Manager to apply the current substitution settings to all queued items.
+- **Processing Order**: Substitutions are applied in this order: (1) Fix nonstandard punctuation, (2) Word substitutions, (3) ALL CAPS conversion, (4) Numeral conversion.
+
+### Example Use Cases
+
+- **Informal text**: Replace contractions and slang with proper words (`gonna|going to`, `wanna|want to`)
+- **Abbreviations**: Expand abbreviations for better pronunciation (`Mr.|Mister`, `Dr.|Doctor`)
+- **Character voices**: Remove filler words for specific characters (`um|`, `uh|`)
+- **ALL CAPS emphasis**: Convert shouted text to lowercase so TTS doesn't misinterpret it
+- **Foreign text**: Replace numbers with word equivalents for more natural pronunciation
+- **eBook formatting**: Fix curly quotes from imported documents that interfere with TTS
 
 ## `About Chapter Markers`
 When you process ePUB, PDF or markdown files, Abogen converts them into text files stored in your cache directory. When you click "Edit," you're actually modifying these converted text files. In these text files, you'll notice tags that look like this:

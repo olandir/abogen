@@ -27,7 +27,8 @@ dependencies = [
     "chardet>=5.2.0",
     "static_ffmpeg>=2.13",
     "Markdown>=3.9",
-    "spacy>=3.8.7"
+    "spacy>=3.8.7",
+    "num2words>=0.5.13"
 ]
 
 classifiers = [

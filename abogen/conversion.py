@@ -553,6 +553,26 @@ class ConversionThread(QThread):
             # Clean up text using utility function
             text = clean_text(text)
 
+            # Apply word substitutions if enabled
+            if getattr(self, "word_substitutions_enabled", False):
+                from abogen.word_substitution import apply_word_substitutions
+
+                self.log_updated.emit("Applying word substitutions...")
+
+                substitutions_list = getattr(self, "word_substitutions_list", "")
+                case_sensitive = getattr(self, "case_sensitive_substitutions", False)
+                replace_caps = getattr(self, "replace_all_caps", False)
+                replace_nums = getattr(self, "replace_numerals", False)
+                fix_punct = getattr(self, "fix_nonstandard_punctuation", False)
+
+                text = apply_word_substitutions(
+                    text,
+                    substitutions_list,
+                    case_sensitive,
+                    replace_caps,
+                    replace_nums,
+                    fix_punct,
+                )
 
             # --- Chapter splitting logic ---
             # Use pre-compiled pattern for better performance
