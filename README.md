@@ -40,7 +40,7 @@ This method handles everything automatically - installing all dependencies inclu
 
 ```bash
 # Clone this repository first
-git clone https://github.com/YOUR_USERNAME/abogen-with-voicemarkers.git
+git clone https://github.com/olandir/abogen-with-voicemarkers.git
 cd abogen-with-voicemarkers
 
 # For NVIDIA GPUs (CUDA 12.8) - Recommended
