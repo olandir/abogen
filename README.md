@@ -1,14 +1,15 @@
-# abogen <img width="40px" title="abogen icon" src="https://raw.githubusercontent.com/denizsafak/abogen/refs/heads/main/abogen/assets/icon.ico" align="right" style="padding-left: 10px; padding-top:5px;">
+# abogen 
 
-[![Build Status](https://github.com/denizsafak/abogen/actions/workflows/test_pip.yml/badge.svg)](https://github.com/denizsafak/abogen/actions)
-[![GitHub Release](https://img.shields.io/github/v/release/denizsafak/abogen)](https://github.com/denizsafak/abogen/releases/latest)
-[![Abogen PyPi Python Versions](https://img.shields.io/pypi/pyversions/abogen)](https://pypi.org/project/abogen/)
-[![Operating Systems](https://img.shields.io/badge/os-windows%20%7C%20linux%20%7C%20macos%20-blue)](https://github.com/denizsafak/abogen/releases/latest)
-[![PyPi Total Downloads](https://img.shields.io/pepy/dt/abogen?label=downloads%20(pypi)&color=blue)](https://pypi.org/project/abogen/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![License: MIT](https://img.shields.io/badge/License-MIT-maroon.svg)](https://opensource.org/licenses/MIT)
+## Important Note
+- The Abogen project is created and maintained by [denizsafak](https://github.com/denizsafak). This is just a fork of the original project located [here](https://github.com/denizsafak/abogen) and is not kept as up to date. This is based off of the current 1.2.5 version of the original project.
 
-<a href="https://trendshift.io/repositories/14433" target="_blank"><img src="https://trendshift.io/api/badge/repositories/14433" alt="denizsafak%2Fabogen | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+- This fork adds a feature for Voice Markers, allowing you to add markers in the text to have the script automatically switch voices whenever you want to add a little more flexibility to creating audiobooks so that you can have multiple voices easily. There are instructions below on how to do that.
+
+- The code was edited using AI (Claude) and although I've tested it and spot checked to make sure it's all accurate, it's AI so the code will not be as clean as if a human wrote it. Use at your own risk. This is a fork, so I couldn't make it private, so I'm including this in the README in case someone tries to use this fork. 
+
+- I've done my best to change the install instructions and the Windows Install file so that it will run correctly based on this fork and its changes.
+
+## Info
 
 Abogen is a powerful text-to-speech conversion tool that makes it easy to turn ePub, PDF, text, markdown, or subtitle files into high-quality audio with matching subtitles in seconds. Use it for audiobooks, voiceovers for Instagram, YouTube, TikTok, or any project that needs natural-sounding text-to-speech, using [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M).
 
@@ -55,7 +56,7 @@ pip install -e .
 
 ```bash
 # Clone this repository
-git clone https://github.com/YOUR_USERNAME/abogen-with-voicemarkers.git
+git clone https://github.com/olandir/abogen-with-voicemarkers.git
 cd abogen-with-voicemarkers
 
 # Create a virtual environment (optional but recommended)
@@ -82,7 +83,7 @@ pip install -e .
 brew install espeak-ng
 
 # Clone this repository
-git clone https://github.com/YOUR_USERNAME/abogen-with-voicemarkers.git
+git clone https://github.com/olandir/abogen-with-voicemarkers.git
 cd abogen-with-voicemarkers
 
 # Create a virtual environment (recommended)
@@ -106,7 +107,7 @@ sudo pacman -S espeak-ng # Arch Linux
 sudo dnf install espeak-ng # Fedora
 
 # Clone this repository
-git clone https://github.com/YOUR_USERNAME/abogen-with-voicemarkers.git
+git clone https://github.com/olandir/abogen-with-voicemarkers.git
 cd abogen-with-voicemarkers
 
 # Create a virtual environment (recommended)
@@ -369,254 +370,11 @@ For a complete list of supported languages and voices, refer to Kokoro's [VOICES
 
 > See [How to fix Japanese audio not working?](#japanese-audio-not-working)
 
-## `MPV Config`
-I highly recommend using [MPV](https://mpv.io/installation/) to play your audio files, as it supports displaying subtitles even without a video track. Here's my `mpv.conf`:
-```
-# --- MPV Settings ---
-save-position-on-quit
-keep-open=yes
-audio-display=no
-# --- Subtitle ---
-sub-ass-override=no
-sub-margin-y=50
-sub-margin-x=50
-# --- Audio Quality ---
-audio-spdif=ac3,dts,eac3,truehd,dts-hd
-audio-channels=auto
-audio-samplerate=48000
-volume-max=200
-```
-
-## `Docker Guide`
-If you want to run Abogen in a Docker container:
-1) [Download the repository](https://github.com/denizsafak/abogen/archive/refs/heads/main.zip) and extract, or clone it using git.
-2) Go to `abogen` folder. You should see `Dockerfile` there.
-3) Open your terminal in that directory and run the following commands:
-
-```bash
-# Build the Docker image:
-docker build --progress plain -t abogen .
-
-# Note that building the image may take a while.
-# After building is complete, run the Docker container:
-
-# Windows
-docker run --name abogen -v %cd%:/shared -p 5800:5800 -p 5900:5900 --gpus all abogen
-
-# Linux
-docker run --name abogen -v $(pwd):/shared -p 5800:5800 -p 5900:5900 --gpus all abogen
-
-# MacOS
-docker run --name abogen -v $(pwd):/shared -p 5800:5800 -p 5900:5900 abogen
-
-# We expose port 5800 for use by a web browser, 5900 if you want to connect with a VNC client.
-```
-
-Abogen launches automatically inside the container. 
-- You can access it via a web browser at [http://localhost:5800](http://localhost:5800) or connect to it using a VNC client at `localhost:5900`.
-- You can use `/shared` directory to share files between your host and the container.
-- For later use, start it with `docker start abogen` and stop it with `docker stop abogen`.
-- Pass in `-e WEB_AUDIO="1"` for `docker run` to enable audio.
-
-Known issues:
-- Audio preview is not working inside container (ALSA error) if using a VNC client.
-- `Open cache directory` and `Open configuration directory` options in settings not working. (Tried pcmanfm, did not work with Abogen).
-
-> Special thanks to [@geo38](https://www.reddit.com/user/geo38/) from Reddit, who provided the Dockerfile and instructions in [this comment](https://www.reddit.com/r/selfhosted/comments/1k8x1yo/comment/mpe0bz8/).
-
-## `🌐 Web Application`
-
-A web-based version of Abogen has been developed by [@jeremiahsb](https://github.com/jeremiahsb).
-
-**Access the repository here:** [jeremiahsb/abogen](https://github.com/jeremiahsb/abogen)
-
-> [!NOTE]
-> I intend to merge this implementation into the main repository in the future once existing conflicts are resolved. Until then, please be aware that the web version is maintained independently and may not always be in sync with the latest updates in this repository.
-
-> Special thanks to [@jeremiahsb](https://github.com/jeremiahsb) for implementing the web app!
-
-## `Similar Projects`
-Abogen is a standalone project, but it is inspired by and shares some similarities with other projects. Here are a few:
-- [audiblez](https://github.com/santinic/audiblez): Generate audiobooks from e-books. **(Has CLI and GUI support)**
-- [autiobooks](https://github.com/plusuncold/autiobooks): Automatically convert epubs to audiobooks
-- [pdf-narrator](https://github.com/mateogon/pdf-narrator): Convert your PDFs and EPUBs into audiobooks effortlessly.
-- [epub_to_audiobook](https://github.com/p0n1/epub_to_audiobook): EPUB to audiobook converter, optimized for Audiobookshelf
-- [ebook2audiobook](https://github.com/DrewThomasson/ebook2audiobook): Convert ebooks to audiobooks with chapters and metadata using dynamic AI models and voice cloning
-
-## `Roadmap`
-- [ ] Add OCR scan feature for PDF files using docling/teserract.
-- [x] Add chapter metadata for .m4a files. (Issue [#9](https://github.com/denizsafak/abogen/issues/9), PR [#10](https://github.com/denizsafak/abogen/pull/10))
-- [ ] Add support for different languages in GUI.
-- [x] Add voice formula feature that enables mixing different voice models. (Issue [#1](https://github.com/denizsafak/abogen/issues/1), PR [#5](https://github.com/denizsafak/abogen/pull/5))
-- [ ] Add support for kokoro-onnx (If it's necessary).
-- [x] Add dark mode.
-
-## `Troubleshooting`
-If you encounter any issues while running Abogen, try launching it from the command line with:
-```
-abogen-cli
-```
-
-If you installed using the Windows installer `(WINDOWS_INSTALL.bat)`, go to `python_embedded/Scripts` and run:
-```
-abogen-cli.exe
-```
-
-This will start Abogen in command-line mode and display detailed error messages. Please open a new issue on the [Issues](https://github.com/denizsafak/abogen/issues) page with the error message and a description of your problem.
-
-## `Common Issues & Solutions`
-
-<details><summary><b>
-<a name="about-abogen">About the name "abogen"</a>
-</b></summary>
-
-> The name **"abogen"** comes from a shortened form of **"audiobook generator"**, which is the purpose of this project.  
->
-> After releasing the project, I learned from [community feedback](https://news.ycombinator.com/item?id=44853064#44857237) that the prefix *"abo"* can unfortunately be understood as an ethnic slur in certain regions (particularly Australia and New Zealand). This was something I was not aware of when naming the project, as English is not my first language.  
->
-> I want to make it clear that the name was chosen only for its technical meaning, with **no offensive intent**. I’m grateful to those who kindly pointed this out, as it helps ensure the project remains respectful and welcoming to everyone.  
-
-</details>
-
-<details><summary><b>
-<a name="cuda-warning">How to fix "CUDA GPU is not available. Using CPU" warning?</a>
-</b></summary>
-
-> This message means PyTorch could not use your GPU and has fallen back to the CPU. On Windows, Abogen only supports NVIDIA GPUs with CUDA. AMD GPUs are not supported on Windows (they are only supported on Linux with ROCm). Abogen will still work on the CPU, but processing will be slower compared to a supported GPU.
->
-> If you have a compatible NVIDIA GPU on Windows and still see this warning:
-> Open your terminal in the Abogen folder (the folder that contains `python_embedded`) and type:
-> ```bash
-> python_embedded\python.exe -m pip install --force-reinstall torch==2.8.0+cu128 torchvision==0.23.0+cu128 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128
-> ```
->
-> If this does not resolve the issue and you are using an older NVIDIA GPU that does not support CUDA 12.8, you can try installing an older version of PyTorch that supports your GPU. For example, for CUDA 12.6, run:
-> ```bash
-> python_embedded\python.exe -m pip install --force-reinstall torch==2.8.0+cu126 torchvision==0.23.0+cu126 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu126
-> ```
-> 
-> If you have an AMD GPU, you need to use Linux and follow the Linux/ROCm [instructions](#linux). If you want to keep running on CPU, no action is required, but performance will just be reduced. See [#32](https://github.com/denizsafak/abogen/issues/32) for more details.
->
-> If you used `uv` to install Abogen, you can uninstall and try reinstalling with another CUDA version:
-> ```bash
-> # First uninstall Abogen
-> uv tool uninstall abogen
-> # Try CUDA 12.6 for older drivers
-> uv tool install --python 3.12 abogen[cuda126] --extra-index-url https://download.pytorch.org/whl/cu126 --index-strategy unsafe-best-match
-> # If that doesn't work, try CUDA 13.0 for newer drivers
-> uv tool install --python 3.12 abogen[cuda130] --extra-index-url https://download.pytorch.org/whl/cu130 --index-strategy unsafe-best-match
-> ```
-
-</details>
-
-<details><summary><b>
-<a name="path-warning">How to fix "WARNING: The script abogen-cli is installed in '/home/username/.local/bin' which is not on PATH" error in Linux?</a>
-</b></summary>
-
-> Run the following command to add Abogen to your PATH:
-> ```bash
-> echo "export PATH=\"/home/$USER/.local/bin:\$PATH\"" >> ~/.bashrc && source ~/.bashrc
-> ```
-
-</details>
-
-<details><summary><b>
-<a name="no-matching-distribution-found">How to fix "No matching distribution found" error?<a>
-</b></summary>
-
-> Try installing Abogen on supported Python (3.10 to 3.12) versions. I recommend installing with [uv](https://docs.astral.sh/uv/getting-started/installation/). You can also use [pyenv](https://github.com/pyenv/pyenv) to manage multiple Python versions easily on Linux. Watch this [video](https://www.youtube.com/watch?v=MVyb-nI4KyI) by NetworkChuck for a quick guide.
-
-</details>
-
-<details><summary><b>
-<a name="WinError-1114">How to fix "[WinError 1114] A dynamic link library (DLL) initialization routine failed" error?</a>
-</b></summary>
-
-> I faced this error when trying to run Abogen in a virtual Windows machine without GPU support. Here's how I fixed it:
-> If you installed Abogen using the Windows installer `(WINDOWS_INSTALL.bat)`, go to Abogen's folder (that contains `python_embedded`), open your terminal there and run:
-> ```bash
-> python_embedded\python.exe -m pip install --force-reinstall torch==2.8.0+cu128 torchvision==0.23.0+cu128 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128
-> ```
-> If you installed Abogen using pip, open your terminal in the virtual environment and run:
-> ```bash
-> pip install torch==2.8.0 torchaudio==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu128
-> ```
-
-</details>
-
-<details><summary><b>
-<a name="japanese-audio-not-working">How to fix Japanese audio not working?</a>
-</b></summary>
-
-> Japanese audio may require additional configuration. 
-> I'm not sure about the exact solution, but it seems to be related to installing additional dependencies for Japanese support in Kokoro. Please check [#56](https://github.com/denizsafak/abogen/issues/56) for more information. 
-
-</details>
-
-<details><summary><b>
-<a name="use-uv-instead-of-pip">How to uninstall Abogen?</a>
-</b></summary>
-
-> - From the settings menu, go to `Open configuration directory` and delete the directory.
-> - From the settings menu, go to `Open cache directory` and delete the directory.
-> - If you installed Abogen using pip, type:
->```bash
->pip uninstall abogen # uninstalls abogen
->pip cache purge # removes pip cache
->```
->- If you installed Abogen using uv, type:
->```bash
->uv tool uninstall abogen # uninstalls abogen
->uv cache clear # removes uv cache
->```
-> - If you installed Abogen using the Windows installer (WINDOWS_INSTALL.bat), just remove the folder that contains Abogen. It installs everything inside `python_embedded` folder, no other directories are created.
-> - If you installed espeak-ng, you need to remove it separately.
-
-</details>
-
-## `Contributing`
-I welcome contributions! If you have ideas for new features, improvements, or bug fixes, please fork the repository and submit a pull request.
-
-### For developers and contributors
-If you'd like to modify the code and contribute to development, you can [download the repository](https://github.com/denizsafak/abogen/archive/refs/heads/main.zip), extract it and run the following commands to build **or** install the package:
-```bash
-# Go to the directory where you extracted the repository and run:
-pip install -e .[dev]       # Installs the package in editable mode with build dependencies
-python -m build             # Builds the package in dist folder (optional)
-abogen                      # Opens the GUI
-```
-> Make sure you are using Python 3.10 to 3.12. You need to create a virtual environment if needed.
-
-<details>
-<summary><b>Alternative: Using uv (click to expand)</b></summary>
-
-```bash
-# Go to the directory where you extracted the repository and run:
-uv venv --python 3.12       # Creates a virtual environment with Python 3.12
-# After activating the virtual environment, run:
-uv pip install -e .         # Installs the package in editable mode
-uv build                    # Builds the package in dist folder (optional)
-abogen                      # Opens the GUI
-```
-
-</details>
-
-Feel free to explore the code and make any changes you like.
-
-## `Credits`
-- Abogen uses [Kokoro](https://github.com/hexgrad/kokoro) for its high-quality, natural-sounding text-to-speech synthesis. Huge thanks to the Kokoro team for making this possible.
-- Thanks to the [spaCy](https://spacy.io/) project for its sentence-segmentation tools, which help Abogen produce cleaner, more natural sentence segmentation.
-- Thanks to [@wojiushixiaobai](https://github.com/wojiushixiaobai) for [Embedded Python](https://github.com/wojiushixiaobai/Python-Embed-Win64) packages. These modified packages include pip pre-installed, enabling Abogen to function as a standalone application without requiring users to separately install Python in Windows.
-- Thanks to creators of [EbookLib](https://github.com/aerkalov/ebooklib), a Python library for reading and writing ePub files, which is used for extracting text from ePub files.
-- Special thanks to the [PyQt](https://www.riverbankcomputing.com/software/pyqt/) team for providing the cross-platform GUI toolkit that powers Abogen's interface.
-- Icons: [US](https://icons8.com/icon/aRiu1GGi6Aoe/usa), [Great Britain](https://icons8.com/icon/t3NE3BsOAQwq/great-britain), [Spain](https://icons8.com/icon/ly7tzANRt33n/spain), [France](https://icons8.com/icon/3muzEmi4dpD5/france), [India](https://icons8.com/icon/esGVrxg9VCJ1/india), [Italy](https://icons8.com/icon/PW8KZnP7qXzO/italy), [Japan](https://icons8.com/icon/McQbrq9qaQye/japan), [Brazil](https://icons8.com/icon/zHmH8HpOmM90/brazil), [China](https://icons8.com/icon/Ej50Oe3crXwF/china), [Female](https://icons8.com/icon/uI49hxbpxTkp/female), [Male](https://icons8.com/icon/12351/male), [Adjust](https://icons8.com/icon/21698/adjust) and [Voice Id](https://icons8.com/icon/GskSeVoroQ7u/voice-id) icons by [Icons8](https://icons8.com/).
 
 ## `License`
 This project is available under the MIT License - see the [LICENSE](https://github.com/denizsafak/abogen/blob/main/LICENSE) file for details.
 [Kokoro](https://github.com/hexgrad/kokoro) is licensed under [Apache-2.0](https://github.com/hexgrad/kokoro/blob/main/LICENSE) which allows commercial use, modification, distribution, and private use.
 
-## `Star History`
-[![Star History Chart](https://api.star-history.com/svg?repos=denizsafak/abogen&type=Date)](https://www.star-history.com/#denizsafak/abogen&Date)
 
 > [!NOTE]
 > Abogen supports subtitle generation for all languages. However, word-level subtitle modes (e.g., "1 word", "2 words", "3 words", etc.) are only available for English because [Kokoro provides timestamp tokens only for English text](https://github.com/hexgrad/kokoro/blob/6d87f4ae7abc2d14dbc4b3ef2e5f19852e861ac2/kokoro/pipeline.py#L383). For non-English languages, Abogen uses a duration-based fallback that supports sentence-level and comma-based subtitle modes ("Line", "Sentence", "Sentence + Comma"). If you need word-level subtitles for other languages, please request that feature in the [Kokoro project](https://github.com/hexgrad/kokoro).
