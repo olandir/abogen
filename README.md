@@ -1,15 +1,15 @@
 # abogen 
 
 ## Important Notes
-- The Abogen project is created and maintained by [denizsafak](https://github.com/denizsafak). This is just a fork of the original project located [here](https://github.com/denizsafak/abogen) and is not kept as up to date. This is based off of the current 1.2.5 version of the original project.
+- The Abogen project is created and maintained by [denizsafak](https://github.com/denizsafak). It is an amazing audiobook creator and ALL credit goes to the creator and the people that helped him create it. This is just a fork of the original project located [here](https://github.com/denizsafak/abogen) with a few added features I personally wanted. This is based off of the 1.2.5 version of the original repo.
 
 - This fork adds a feature for Voice Markers, allowing you to add markers in the text to have the script automatically switch voices whenever you want to add a little more flexibility to creating audiobooks so that you can have multiple voices easily. There are instructions below on how to do that.
 
 - This fork adds a Word Substitution feature that allows you to preprocess text before audio generation. You can replace words/phrases, convert ALL CAPS to lowercase, convert numerals to words, and fix nonstandard punctuation (like curly quotes) that can interfere with TTS pronunciation. All substitutions preserve chapter markers, voice markers, metadata tags, and timestamps.
 
-- The code was edited using AI (Claude) and although I've tested it and spot checked to make sure it's all accurate, it's AI so the code will not be as clean as if a human wrote it. Use at your own risk. This is a fork, so I couldn't make it private, so I'm including this in the README in case someone tries to use this fork. 
+- The code was edited using AI (Claude) and although I've tested it and spot checked to make sure it's all accurate, it's AI so the code will not be as clean as if a human wrote it. Use at your own risk. I did update the README in case someone tries to use this fork. but again, the main repo is located [here](https://github.com/denizsafak/abogen). If you have troubles with this one, I recommend you try that as it really is a great audiobook creator. I just added a few features I really wanted for my use case, but they may not even be things you need. So if that's the case, definitely use the main repo.
 
-- I've done my best to change the install instructions and the Windows Install file so that it will run correctly based on this fork and its changes.
+- I've changed the install instructions and the Windows Install BAT file so that it will run correctly based on this fork and its changes. I use Windows, so nothing else is tested unfortunately, but in theory should be fine.
 
 ## Info
 

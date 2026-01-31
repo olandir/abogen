@@ -832,6 +832,7 @@ class WordSubstitutionsDialog(QDialog):
         # Instructions
         instructions = QLabel(
             "Enter word substitutions (one per line) in format: Word|NewWord\n"
+            "  - Substitutions listed below will not affect original text\n"
             "  - If nothing after |, the word will be erased completely\n"
             "  - Substitutions match whole words only (e.g., \"tree\" won't match \"trees\" but will match \"tree's\")\n"
             "  - By default, matching is case-insensitive (e.g., \"gonna\" matches \"Gonna\", \"GONNA\", etc.)",
