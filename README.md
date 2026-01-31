@@ -9,7 +9,7 @@
 
 - The code was edited using AI (Claude) and although I've tested it and spot checked to make sure it's all accurate, it's AI so the code will not be as clean as if a human wrote it. Use at your own risk. I did update the README in case someone tries to use this fork. but again, the main repo is located [here](https://github.com/denizsafak/abogen). If you have troubles with this one, I recommend you try that as it really is a great audiobook creator. I just added a few features I really wanted for my use case, but they may not even be things you need. So if that's the case, definitely use the main repo.
 
-- I've changed the install instructions and the Windows Install BAT file so that it will run correctly based on this fork and its changes. I use Windows, so nothing else is tested unfortunately, but in theory should be fine.
+- I've changed the install instructions and the Windows Install BAT file so that it will run correctly based on this fork and its changes. I use Windows, so nothing else is tested unfortunately, but in theory it should be fine.
 
 ## Info
 
